@@ -11,8 +11,8 @@ declare_id!("46wr5XGHYSMmaV6SAsRNkegSdi8qN69eSrbUVpByxNZo");
 pub mod clusters {
     use super::*;
 
-    pub fn create_cluster(ctx: Context<Create>, name : String, symbol : String, t1 : Pubkey, t1amt : u64, t2 : Pubkey, t2amt : u64 ,t3 : Pubkey, t3amt : u64) -> Result<()> {
-        instructions::create::create_cluster(ctx, name, symbol, t1, t1amt, t2, t2amt,t3, t3amt)?;
+    pub fn create_cluster(ctx: Context<Create>, name : String, symbol : String, t1 : Pubkey, t1amt : u64) -> Result<()> {
+        instructions::create::create_cluster(ctx, name, symbol, t1, t1amt)?;
         Ok(())
     }
 
@@ -20,4 +20,15 @@ pub mod clusters {
         instructions::interact::init_cluster(ctx)?;
         Ok(())
     }
+
+    pub fn init_cluster_token_account(ctx : Context<InitTokenAccount>) -> Result<()> {
+        instructions::interact::init_cluster_token_account(ctx)?;
+        Ok(())
+    }
+
+    pub fn issue_cluster(ctx : Context<Issue>, amt : u64) -> Result<()> {
+        instructions::interact::issue_cluster(ctx, amt)?;
+        Ok(())
+    }
+
 }
