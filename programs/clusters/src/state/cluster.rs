@@ -1,17 +1,18 @@
 use anchor_lang::prelude::*;
 use crate::errors::Errors;
 
+
 #[account]
 pub struct Cluster {
     pub cluster_mint : Pubkey,
     pub cluster_name : String,
     pub cluster_symbol : String,
     pub token_one : Pubkey,
-    pub token_one_amt : u64,
-//    pub token_two : Pubkey,
-//    pub token_two_amt : u64,
-//    pub token_three : Pubkey,
-//    pub token_three_amt : u64,
+    pub t1amt : u64,
+    pub token_two : Pubkey,
+    pub t2amt : u64,
+    pub token_three : Pubkey,
+    pub t3amt : u64,
     pub cluster_supply : u64,
     pub inited : bool,
 }
@@ -32,9 +33,10 @@ impl Cluster{
         + ( U64_LENGTH ) * 4
         + BOOL_LENGTH;
 
-//    pub fn token_one_key(&self) -> Pubkey {
-//        return  self.token_one;
-//    }
+    pub fn cluster_supply(&self) -> u64 {
+        return  self.cluster_supply;
+    }
+
 
     pub fn init_cluster(&mut self) -> Result<()>{
         require!(self.inited == false, Errors::AlreadyInited);

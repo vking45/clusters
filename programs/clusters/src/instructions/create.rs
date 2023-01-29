@@ -4,7 +4,7 @@ use anchor_spl::{
     token::{Token,Mint},
 };
 
-pub fn create_cluster(ctx : Context<Create>, name : String, symbol : String, t1 : Pubkey, t1amt : u64) -> Result<()>{
+pub fn create_cluster(ctx : Context<Create>, name : String, symbol : String, t1 : Pubkey, t2 : Pubkey, t3 : Pubkey) -> Result<()>{
     let cluster : &mut Account<Cluster> = &mut ctx.accounts.cluster;
 //    let signer : &Signer = &ctx.accounts.signer;
     let cluster_mint : &Account<Mint> = &ctx.accounts.cluster_mint;
@@ -14,11 +14,11 @@ pub fn create_cluster(ctx : Context<Create>, name : String, symbol : String, t1 
     cluster.cluster_mint = cluster_mint.key();
     cluster.cluster_supply = 0;
     cluster.token_one = t1;
-    cluster.token_one_amt = t1amt;
-//    cluster.token_two = t2;
-//    cluster.token_two_amt = t2amt;
-//    cluster.token_three = t3;
-//    cluster.token_three_amt = t3amt;
+    cluster.t1amt = 10000;
+    cluster.token_two = t2;
+    cluster.t2amt = 10000;
+    cluster.token_three = t3;
+    cluster.t3amt = 10000;
     cluster.inited = false;
     Ok(())
 }
@@ -38,8 +38,9 @@ pub struct Create<'info>{
     #[account(init,
         payer = signer,
         mint::decimals = 0,
-        mint::authority = cluster,
-        mint::freeze_authority = cluster,
+        mint::authority = cluster_mint,
+        seeds=[&cluster.to_account_info().key.clone().to_bytes()],
+        bump,
     )]
     pub cluster_mint : Account<'info, Mint>,
 

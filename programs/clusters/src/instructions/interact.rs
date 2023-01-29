@@ -1,10 +1,10 @@
 use anchor_lang::prelude::*;
 use crate::state::cluster::*;
 use anchor_spl::{
-    token::{TokenAccount, Token, Mint, Transfer, transfer, mint_to, MintTo},
+    token::{TokenAccount, Token, Mint, Transfer, transfer, mint_to, MintTo, burn, Burn},
 };
 
-pub fn init_cluster(ctx : Context<Init>) -> Result<()>{
+pub fn init_cluster(ctx : Context<InitCluster>) -> Result<()> {
     let cluster : &mut Account<Cluster> = &mut ctx.accounts.cluster;
     cluster.init_cluster()?;
     Ok(())
@@ -14,7 +14,7 @@ pub fn init_cluster_token_account(_ctx : Context<InitTokenAccount>) -> Result<()
     Ok(())
 }
 
-pub fn issue_cluster(ctx : Context<Issue>, amt : u64) -> Result<()>{
+pub fn issue_cluster(ctx : Context<Issue>, amt : u64, bump : u8) -> Result<()>{
     let cluster : &mut Account<Cluster> = &mut ctx.accounts.cluster;
     let signer : &Signer = &ctx.accounts.signer;
     let token_program = &ctx.accounts.token_program;
@@ -30,28 +30,149 @@ pub fn issue_cluster(ctx : Context<Issue>, amt : u64) -> Result<()>{
                 authority : signer.to_account_info(),
             },
         ),
-        (cluster.token_one_amt) * amt
+        cluster.t1amt * amt
     )?;
 
-    mint_to(
+
+    transfer(
         CpiContext::new(
+            token_program.to_account_info(),
+            Transfer{
+                from : ctx.accounts.issuer_two.to_account_info(),
+                to : ctx.accounts.cluster_two.to_account_info(),
+                authority : signer.to_account_info(),
+            },
+        ),
+        cluster.t2amt * amt
+    )?;
+
+    transfer(
+        CpiContext::new(
+            token_program.to_account_info(),
+            Transfer{
+                from : ctx.accounts.issuer_three.to_account_info(),
+                to : ctx.accounts.cluster_three.to_account_info(),
+                authority : signer.to_account_info(),
+            },
+        ),
+        cluster.t3amt * amt
+    )?;
+
+     mint_to(
+        CpiContext::new_with_signer(
             token_program.to_account_info(),
             MintTo{ 
                 mint: cluster_mint.to_account_info(), 
                 to: cluster_token_account.to_account_info(), 
-                authority: signer.to_account_info(), 
+                authority: cluster_mint.to_account_info(), 
             },
+            &[&[
+                &cluster.to_account_info().key.clone().to_bytes(),
+                &[bump],
+            ]]
         ),
         amt
-    )?;
+    )?;  
 
     cluster.issue_cluster()?;
     Ok(())
 }
 
+pub fn redeem_cluster(ctx : Context<Redeem>, amt : u64, bump_one : u8, bump_two : u8, bump_three : u8) -> Result<()>{
+    let cluster : &mut Account<Cluster> = &mut ctx.accounts.cluster;
+    let signer : &Signer = &ctx.accounts.signer;
+    let token_program = &ctx.accounts.token_program;
+    let cluster_mint : &mut Account<Mint> = &mut ctx.accounts.cluster_token;
+    let mint_one : &mut Account<Mint> = &mut ctx.accounts.mint_one;
+    let mint_two : &mut Account<Mint> = &mut ctx.accounts.mint_two;
+    let mint_three : &mut Account<Mint> = &mut ctx.accounts.mint_three;
+    let cluster_token_account : &mut Account<TokenAccount> = &mut ctx.accounts.cluster_token_account;
+    let cluster_one : &mut Account<TokenAccount> = &mut ctx.accounts.cluster_one;
+    let redeemer_one : &mut Account<TokenAccount> = &mut ctx.accounts.redeemer_one;
+
+    transfer(
+        CpiContext::new_with_signer(
+            token_program.to_account_info(),
+            Transfer{
+                from : cluster_one.to_account_info(),
+                to : redeemer_one.to_account_info(),
+                authority : cluster_one.to_account_info(),
+            },
+            &[&[
+                &mint_one.to_account_info().key.clone().to_bytes(),
+                &[bump_one],
+            ]]
+        ),
+        cluster.t1amt * amt
+    )?;
+
+
+    transfer(
+        CpiContext::new_with_signer(
+            token_program.to_account_info(),
+            Transfer{
+                from : ctx.accounts.cluster_two.to_account_info(),
+                to : ctx.accounts.redeemer_two.to_account_info(),
+                authority : ctx.accounts.cluster_two.to_account_info(),
+            },
+            &[&[
+                &mint_two.to_account_info().key.clone().to_bytes(),
+                &[bump_two],
+            ]]
+        ),
+        cluster.t2amt * amt
+    )?;
+
+    transfer(
+        CpiContext::new_with_signer(
+            token_program.to_account_info(),
+            Transfer{
+                from : ctx.accounts.cluster_three.to_account_info(),
+                to : ctx.accounts.redeemer_three.to_account_info(),
+                authority : ctx.accounts.cluster_three.to_account_info(),
+            },
+            &[&[
+                &mint_three.to_account_info().key.clone().to_bytes(),
+                &[bump_three],
+            ]]
+        ),
+        cluster.t3amt * amt
+    )?;
+
+    burn(
+        CpiContext::new(
+            token_program.to_account_info(),
+            Burn{
+                mint : cluster_mint.to_account_info(),
+                from : cluster_token_account.to_account_info(),
+                authority : signer.to_account_info(),
+            },
+        ), 
+        amt
+    )?;
+
+/*      mint_to(
+        CpiContext::new_with_signer(
+            token_program.to_account_info(),
+            MintTo{ 
+                mint: cluster_mint.to_account_info(), 
+                to: cluster_token_account.to_account_info(), 
+                authority: cluster_mint.to_account_info(), 
+            },
+            &[&[
+                &cluster.to_account_info().key.clone().to_bytes(),
+                &[bump],
+            ]]
+        ),
+        amt
+    )?;  
+*/
+    cluster.redeem_cluster()?;
+    Ok(())
+}
+
 #[derive(Accounts)]
-#[instruction(bump : u8)]
-pub struct Init<'info> {
+pub struct InitCluster<'info>{
 
     #[account(mut)]
     pub cluster : Account<'info, Cluster>,
@@ -60,42 +181,12 @@ pub struct Init<'info> {
     pub signer : Signer<'info>,
 
     #[account(
-        init,  
-        payer = signer,
-        token::mint = mint_one,
-        token::authority = cluster, 
-        seeds = [&cluster.to_account_info().key.clone().to_bytes()], 
-        bump,
-    )]
-    pub token_one_acc : Account<'info, TokenAccount>,
-
-/*     #[account(
-        init,  
-        payer = signer,
-        token::mint = mint_two,
-        token::authority = cluster, 
-        seeds = [&cluster.to_account_info().key.clone().to_bytes()], 
-        bump,
-    )]
-    pub token_two_acc : Account<'info, TokenAccount>,
-
-    #[account(
-        init,  
-        payer = signer,
-        token::mint = mint_three,
-        token::authority = cluster, 
-        seeds = [&cluster.to_account_info().key.clone().to_bytes()], 
-        bump,
-    )]
-    pub token_three_acc : Account<'info, TokenAccount>,
-*/
-    #[account(
         mut, 
         address = cluster.token_one.key()
     )]
     pub mint_one : Account<'info, Mint>,
 
-/*     #[account(
+    #[account(
         mut, 
         address = cluster.token_two.key()
     )]
@@ -106,12 +197,43 @@ pub struct Init<'info> {
         address = cluster.token_three.key()
     )]
     pub mint_three : Account<'info, Mint>,
-*/
+
+    #[account(
+        init,
+        payer = signer,
+        token::mint = mint_one,
+        token::authority = mint_one_account,
+        seeds = [&mint_one.to_account_info().key.clone().to_bytes()],
+        bump,
+    )]
+    pub mint_one_account : Box<Account<'info, TokenAccount>>, 
+
+    #[account(
+        init,
+        payer = signer,
+        token::mint = mint_two,
+        token::authority = mint_two_account,
+        seeds = [&mint_two.to_account_info().key.clone().to_bytes()],
+        bump,
+    )]
+    pub mint_two_account : Box<Account<'info, TokenAccount>>, 
+
+    #[account(
+        init,
+        payer = signer,
+        token::mint = mint_three,
+        token::authority = mint_three_account,
+        seeds = [&mint_three.to_account_info().key.clone().to_bytes()],
+        bump,
+    )]
+    pub mint_three_account : Box<Account<'info, TokenAccount>>, 
+
     pub token_program : Program<'info, Token>,
 
     pub system_program : Program<'info, System>,
 
-    pub rent: Sysvar<'info, Rent>,
+    pub rent : Sysvar<'info, Rent>,
+
 }
 
 #[derive(Accounts)]
@@ -149,62 +271,172 @@ pub struct Issue<'info> {
     #[account(mut)]
     pub signer : Signer<'info>,
 
-    #[account(mut,
-        token::mint = cluster.token_one,
+    #[account(
+        mut,
+        token::mint = mint_one,
         token::authority = signer,
     )]
-    pub issuer_one : Account<'info, TokenAccount>,
+    pub issuer_one : Box<Account<'info, TokenAccount>>,
 
-    #[account(mut,
-        seeds = [&cluster.to_account_info().key.clone().to_bytes()],
-        bump,
+    #[account(
+        mut,
+        token::mint = mint_two,
+        token::authority = signer,
     )]
-    pub cluster_one : Account<'info, TokenAccount>,
+    pub issuer_two : Box<Account<'info, TokenAccount>>,
 
-    #[account(mut,
-        address = cluster.cluster_mint,
+    #[account(
+        mut,
+        token::mint = mint_three,
+        token::authority = signer,
+    )]
+    pub issuer_three : Box<Account<'info, TokenAccount>>,
+
+    #[account(
+        mut, 
+        address = cluster.token_one,
+    )]
+    pub mint_one : Account<'info, Mint>,
+
+    #[account(
+        mut, 
+        address = cluster.token_two,
+    )]
+    pub mint_two : Account<'info, Mint>,
+
+    #[account(
+        mut, 
+        address = cluster.token_three,
+    )]
+    pub mint_three : Account<'info, Mint>,
+
+    #[account(
+        mut,
+        token::mint = mint_one,
+        token::authority = cluster_one,
+    )]
+    pub cluster_one : Box<Account<'info, TokenAccount>>,
+
+    #[account(
+        mut,
+        token::mint = mint_two,
+        token::authority = cluster_two,
+    )]
+    pub cluster_two : Box<Account<'info, TokenAccount>>,
+
+    #[account(
+        mut,
+        token::mint = mint_three,
+        token::authority = cluster_three,
+    )]
+    pub cluster_three : Box<Account<'info, TokenAccount>>,
+
+    #[account(
+        mut,
+        seeds=[&cluster.to_account_info().key.clone().to_bytes()],
+        bump,
     )]
     pub cluster_token : Account<'info, Mint>,
 
     #[account(mut,
-        token::mint = cluster.cluster_mint,
+        token::mint = cluster_token,
         token::authority = signer,
     )]
-    pub cluster_token_account : Account<'info, TokenAccount>,
+    pub cluster_token_account : Box<Account<'info, TokenAccount>>,
 
     pub token_program : Program<'info, Token>,
 
     pub system_program : Program<'info, System>,
 }
 
-/* 
-
-pub fn issue_cluster() -> Result<()> {
-    Ok(())
-}
-
 #[derive(Accounts)]
-pub struct Issue<'info> {
+pub struct Redeem<'info>{
     #[account(mut)]
     pub cluster : Account<'info, Cluster>,
 
     #[account(mut)]
     pub signer : Signer<'info>,
 
-    #[account(mut,
-        token::mint = cluster.token_one.key()
+    #[account(
+        mut, 
+        address = cluster.token_one,
     )]
-    pub token_account_one : Account<'info, TokenAccount>,
+    pub mint_one : Account<'info, Mint>,
+
+    #[account(
+        mut, 
+        address = cluster.token_two,
+    )]
+    pub mint_two : Account<'info, Mint>,
+
+    #[account(
+        mut, 
+        address = cluster.token_three,
+    )]
+    pub mint_three : Account<'info, Mint>,
+
+    #[account(
+        mut,
+        token::mint = mint_one,
+        token::authority = cluster_one,
+        seeds = [&mint_one.to_account_info().key.clone().to_bytes()],
+        bump,
+    )]
+    pub cluster_one : Box<Account<'info, TokenAccount>>,
+
+    #[account(
+        mut,
+        token::mint = mint_two,
+        token::authority = cluster_two,
+        seeds = [&mint_two.to_account_info().key.clone().to_bytes()],
+        bump,
+    )]
+    pub cluster_two : Box<Account<'info, TokenAccount>>,
+
+    #[account(
+        mut,
+        token::mint = mint_three,
+        token::authority = cluster_three,
+        seeds = [&mint_three.to_account_info().key.clone().to_bytes()],
+        bump,
+    )]
+    pub cluster_three : Box<Account<'info, TokenAccount>>,
+
+    #[account(
+        mut,
+        token::mint = mint_one,
+        token::authority = signer,
+    )]
+    pub redeemer_one : Box<Account<'info, TokenAccount>>,
+
+    #[account(
+        mut,
+        token::mint = mint_two,
+        token::authority = signer,
+    )]
+    pub redeemer_two : Box<Account<'info, TokenAccount>>,
+
+    #[account(
+        mut,
+        token::mint = mint_three,
+        token::authority = signer,
+    )]
+    pub redeemer_three : Box<Account<'info, TokenAccount>>,
+
+    #[account(
+        mut,
+        seeds=[&cluster.to_account_info().key.clone().to_bytes()],
+        bump,
+    )]
+    pub cluster_token : Account<'info, Mint>,
 
     #[account(mut,
-        token::mint = cluster.token_two.key()
+        token::mint = cluster_token,
+        token::authority = signer,
     )]
-    pub token_account_two : Account<'info, TokenAccount>,
+    pub cluster_token_account : Box<Account<'info, TokenAccount>>,
 
-    #[account(mut,
-        token::mint = cluster.token_three.key()
-    )]
-    pub token_account_three : Account<'info, TokenAccount>,
+    pub token_program : Program<'info, Token>,
+
+    pub system_program : Program<'info, System>,
 }
-
-*/
