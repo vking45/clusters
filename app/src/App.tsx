@@ -1,14 +1,22 @@
 import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
-import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react';
-import { WalletModalProvider, WalletMultiButton } from '@solana/wallet-adapter-react-ui';
-import { UnsafeBurnerWalletAdapter } from '@solana/wallet-adapter-wallets';
-import { clusterApiUrl } from '@solana/web3.js';
+import { ConnectionProvider, WalletProvider, useAnchorWallet } from '@solana/wallet-adapter-react';
+import { WalletModalProvider } from '@solana/wallet-adapter-react-ui';
+import { PhantomWalletAdapter } from '@solana/wallet-adapter-wallets';
+import { clusterApiUrl, PublicKey } from '@solana/web3.js';
+import Navbar from './components/Navbar';
+import * as anchor from "@project-serum/anchor";
 import React, { FC, ReactNode, useMemo } from 'react';
+import { createCluster, initCluster, issueCluster, redeemCluster } from './components/funcs';
+
+import * as buffer from "buffer";
 
 require('./App.css');
 require('@solana/wallet-adapter-react-ui/styles.css');
 
 const App: FC = () => {
+
+    window.Buffer = buffer.Buffer;
+
     return (
         <Context>
             <Content />
@@ -38,7 +46,8 @@ const Context: FC<{ children: ReactNode }> = ({ children }) => {
              * instantiate its legacy wallet adapter here. Common legacy adapters can be found
              * in the npm package `@solana/wallet-adapter-wallets`.
              */
-            new UnsafeBurnerWalletAdapter(),
+            // new UnsafeBurnerWalletAdapter(),
+            new PhantomWalletAdapter(),
         ],
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [network]
@@ -54,9 +63,25 @@ const Context: FC<{ children: ReactNode }> = ({ children }) => {
 };
 
 const Content: FC = () => {
+    const wallet = useAnchorWallet();
+
+    const k1 = new anchor.web3.PublicKey("7b1jGmedv6EdKagn9pgy25fpxQYSno7P7teZ2sL4VJa8");
+    const k2 = new anchor.web3.PublicKey("9uzBMn5WbV3Z8hTUp41waD7YJDwfs6mRmMzdhjAq1sMT");
+    const k3 = new anchor.web3.PublicKey("9nFLgom8xt39ho2jrSnd3wei9BKTsMUp893TffkTAE54");
+
+    const cp = new anchor.web3.PublicKey("3bH9yB5hkMKzJtjfLwLb5EVhexrvBjQiTbPkz8K7XMzc");
+
+//    createCluster(k1,k2,k3);
+
     return (
-        <div className="App">
-            <WalletMultiButton />
+        <div className="App">            
+            <Navbar />
+            <div>
+                <button onClick={() => createCluster(wallet, "ClusterOne", "CONE", k1, k2, k3)}>Create</button><br /><br />
+                <button onClick={() => initCluster(wallet, cp, k1, k2, k3)}>Init</button><br /><br />
+                <button onClick={() => issueCluster(wallet, cp, 1, k1, k2, k3)}>Issue</button><br /><br />
+                <button onClick={() => redeemCluster(wallet, cp, 1, k1, k2, k3)}>Redeem</button>
+            </div>
         </div>
     );
 };
