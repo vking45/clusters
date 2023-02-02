@@ -8,7 +8,7 @@ const List = ({ listTitles }) => {
                 listTitles.map((clustor) => (
                     <div className="flex-start">
                     <div className="p-6 max-w-xs bg-white rounded-lg border border-gray-200 shadow-md dark:bg-white-400 dark:border-white-700 m-auto mb-4 gap-y-4 dark:hover:bg-gray-100">
-    <a href={`/clusters/${clustor.address}/`}>
+    <a>
         <h5 className="mb-2 text-2xl font-semibold tracking-tight text-gray-800">{ clustor.cname }</h5>
         <Link className="inline-flex items-center text-blue-600 hover:underline" to={`/clusters/${clustor.address}/`}>
         Interact

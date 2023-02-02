@@ -1,29 +1,74 @@
-import { lazy } from "react";
-import { useState, useEffect } from "react";
+import { useAnchorWallet } from "@solana/wallet-adapter-react";
+import { useState, useEffect, Suspense } from "react";
 import {useParams} from "react-router-dom";
-
-import TokensList from "./TokenList";
+import { getClusters } from "./funcs";
+import { initCluster } from "./funcs";
+import { lazy } from "react";
+import Home from "./home";
+const TokensList = lazy(() => import("./TokenList"));
 
 let ListAddresses = [];
 
 const Cluster = () => {
+    const wallet = useAnchorWallet();
 
     const {address} = useParams();
     const [loading, setLoading] = useState(false);
     const [amount, setAmount] = useState(1);
     const [clustorStatus, setClustorStatus] = useState(false);
+    const [clustorName, setClustorName] = useState("");
+    const [clustorSupply, setClustorSupply] = useState(0);
+    const [tokenKeyOne, setTokenKeyOne] = useState(null);
+    const [tokenKeyTwo, setTokenKeyTwo] = useState(null);
+    const [tokenKeyThree, setTokenKeyThree] = useState(null);
+    const [tokenOneAmt, setTokenOneAmt] = useState(0);
+    const [tokenTwoAmt, setTokenTwoAmt] = useState(0);
+    const [tokenThreeAmt, setTokenThreeAmt] = useState(0);
+
+    useEffect(() => {
+      (async () => {
+        setLoading(true);
+        const i = await getClusters(wallet);
+        let x = i.find(el => el.publicKey.toBase58() === address);
+        console.log(x);
+        setClustorStatus(x.account.inited);
+        setClustorName(x.account.clusterName);
+        setClustorSupply(x.account.clusterSupply.toNumber());
+        setTokenKeyOne(x.account.tokenOne.toBase58());
+        setTokenKeyTwo(x.account.tokenTwo.toBase58());
+        setTokenKeyThree(x.account.tokenThree.toBase58());
+        setTokenOneAmt(x.account.t1Amt.toNumber());
+        setTokenTwoAmt(x.account.t2Amt.toNumber());
+        setTokenThreeAmt(x.account.t3Amt.toNumber());
+        if(tokenKeyOne !== null && tokenKeyTwo !== null && tokenKeyThree !== null && tokenOneAmt !== 0 && tokenTwoAmt !== 0 && tokenThreeAmt !== 0 && ListAddresses.length === 0){
+        ListAddresses.push({address : tokenKeyOne, value : tokenOneAmt}, {address : tokenKeyTwo, value : tokenTwoAmt}, {address : tokenKeyThree, value : tokenThreeAmt});
+        }
+        setLoading(false);
+      })();
+    }, [wallet, address, tokenKeyOne, tokenKeyTwo, tokenKeyThree, tokenOneAmt, tokenTwoAmt, tokenThreeAmt]);
+
+    const initialize = async() => {
+      setLoading(true);
+      try{
+      await initCluster(wallet, address, tokenKeyOne, tokenKeyTwo, tokenKeyThree);
+        alert("Transaction succesful!");
+      } catch(error) {
+        alert(error);
+      }
+      setLoading(false);
+    }
 
     return (
         <div className="">
-           <h1 className="mb-4 text-4xl flex justify-center align-middle font-bold text-gray-700 md:text-2xl lg:text-4xl ">{}</h1>
+           <h1 className="mb-4 text-4xl flex justify-center align-middle font-bold text-gray-700 md:text-2xl lg:text-4xl ">{clustorName}</h1>
           {clustorStatus ?
             <div className="wrapper">
-            <h3 className="mb-4 text-lg flex justify-center align-middle font-semibold text-gray-700 md:text-xl lg:text-xl">{"Clustor Supply : "}</h3>
+            <h3 className="mb-4 text-lg flex justify-center align-middle font-semibold text-gray-700 md:text-xl lg:text-xl">{"Clustor Supply : " + clustorSupply}</h3>
             <span className="mb-2 cursor-text text-sm flex justify-center align-middle font-normal text-gray-600 lg:text-m sm:px-16 xl:px-48 dark:text-gray-600">{}</span>
-            <span className="mb-2 text-sm flex justify-center align-middle font-normal text-gray-600 lg:text-m sm:px-16 xl:px-48 dark:text-gray-600">Add this token address to your respective wallets</span>
+            <span className="mb-2 text-sm flex justify-center align-middle font-normal text-gray-600 lg:text-m sm:px-16 xl:px-48 dark:text-gray-600">Please consider respective decimals for the amounts below</span>
           </div>
           :
-            <button className="py-2.5 px-5 mr-2 text-sm font-medium text-gray-900 bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700 inline-flex items-center">{loading ? "Loading...":"Initialize"}
+            <button className="py-2.5 px-5 mr-2 text-sm font-medium text-gray-900 bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700 inline-flex items-center" onClick={initialize}>{loading ? "Loading...":"Initialize"}
             </button>
           }
         
@@ -31,14 +76,16 @@ const Cluster = () => {
 
             <div className="w-5/12">
               <h3 className="mb-4 flex justify-center align-middle text-2xl font-bold tracking-tight leading-none text-gray-700 md:text-xl lg:text-2xl">Token List</h3>
+              <Suspense fallback={<Home />}>
               <TokensList addresses={ListAddresses} />
+              </Suspense>
               <div className="flex justify-center align-middle">
               <div className="flex justify-center align-middle sm:w-80 h-0.5 w-96 m-4 bg-cex rounded"></div>
               </div>
                 <div className="list-form  flex justify-center align-middle">
                   <input className="w-24 bg-gray-100 bg-opacity-50 rounded border border-gray-300 focus:border-blue-200 focus:ring-2 focus:ring-blue-100 text-base outline-none text-gray-700 py-1 px-4  leading-8 transition-colors duration-200 ease-in-out" type="number" min="1" value={amount} name="input-amount" id="input-amount" onChange={(e) => setAmount(e.target.value)} />
                 </div>
-                <div className="grid grid-rows-1 grid-flow-col gap-1">
+<div className="grid grid-rows-1 grid-flow-col gap-1">
 <div className="inline-flex rounded-md shadow-sm  justify-center align-middle">
   <button type="button" className="inline-flex items-center py-2 px-4 text-sm font-medium  rounded-l-lg text-white bg-cex focus:outline-none hover:bg-rex">
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" className="w-6 h-6 m-1">

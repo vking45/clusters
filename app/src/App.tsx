@@ -2,15 +2,14 @@ import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
 import { ConnectionProvider, WalletProvider, useAnchorWallet } from '@solana/wallet-adapter-react';
 import { WalletModalProvider } from '@solana/wallet-adapter-react-ui';
 import { PhantomWalletAdapter } from '@solana/wallet-adapter-wallets';
-import { clusterApiUrl, PublicKey } from '@solana/web3.js';
-import { lazy } from "react";
+import { clusterApiUrl } from '@solana/web3.js';
 import { BrowserRouter as Router, Route, Routes} from "react-router-dom";
 import Navbar from './components/Navbar';
 import * as anchor from "@project-serum/anchor";
 import Cluster from './components/clusters';
 import Home from './components/home';
 import Browse from './components/browse';
-import React, { FC, ReactNode, useEffect, useMemo, useState } from 'react';
+import React, { FC, ReactNode, useMemo } from 'react';
 import { createCluster, initCluster, issueCluster, redeemCluster, getClusters, faucetTestTokens, createTokenAccounts } from './components/funcs';
 
 import * as buffer from "buffer";
