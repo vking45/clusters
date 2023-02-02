@@ -3,8 +3,13 @@ import { ConnectionProvider, WalletProvider, useAnchorWallet } from '@solana/wal
 import { WalletModalProvider } from '@solana/wallet-adapter-react-ui';
 import { PhantomWalletAdapter } from '@solana/wallet-adapter-wallets';
 import { clusterApiUrl, PublicKey } from '@solana/web3.js';
+import { lazy } from "react";
+import { BrowserRouter as Router, Route, Routes} from "react-router-dom";
 import Navbar from './components/Navbar';
 import * as anchor from "@project-serum/anchor";
+import Cluster from './components/clusters';
+import Home from './components/home';
+import Browse from './components/browse';
 import React, { FC, ReactNode, useEffect, useMemo, useState } from 'react';
 import { createCluster, initCluster, issueCluster, redeemCluster, getClusters, faucetTestTokens, createTokenAccounts } from './components/funcs';
 
@@ -19,7 +24,15 @@ const App: FC = () => {
 
     return (
         <Context>
-            <Content />
+            <Router>
+            <Navbar />
+                <Routes>
+                    <Route path='/' element={<Home/>} />
+                    <Route path='/content/' element={<Content />} />
+                    <Route path='/browse/' element={<Browse />} />
+                    <Route path="/clusters/:address/" element={<Cluster />} />
+                </Routes>
+        </Router>
         </Context>
     );
 };
@@ -65,8 +78,6 @@ const Context: FC<{ children: ReactNode }> = ({ children }) => {
 const Content: FC = () => {
     const wallet = useAnchorWallet();
 
-    const [clusters, setClusters] = useState(null);
-
     const k1 = new anchor.web3.PublicKey("7b1jGmedv6EdKagn9pgy25fpxQYSno7P7teZ2sL4VJa8");
     const k2 = new anchor.web3.PublicKey("9uzBMn5WbV3Z8hTUp41waD7YJDwfs6mRmMzdhjAq1sMT");
     const k3 = new anchor.web3.PublicKey("9nFLgom8xt39ho2jrSnd3wei9BKTsMUp893TffkTAE54");
@@ -82,8 +93,7 @@ const Content: FC = () => {
     }
 
     return (
-        <div className="App">            
-            <Navbar />
+        <div className="App">
             <div>
                 <button onClick={() => createCluster(wallet, "ClusterOne", "CONE", k1, k2, k3)}>Create</button><br /><br />
                 <button onClick={() => initCluster(wallet, cp, k1, k2, k3)}>Init</button><br /><br />

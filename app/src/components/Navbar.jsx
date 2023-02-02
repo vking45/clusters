@@ -1,4 +1,5 @@
-import { WalletMultiButton } from "@solana/wallet-adapter-react-ui"
+import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
+import '../App.css';
 
 const Navbar = () => {
     return(
