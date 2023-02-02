@@ -5,8 +5,8 @@ import { PhantomWalletAdapter } from '@solana/wallet-adapter-wallets';
 import { clusterApiUrl, PublicKey } from '@solana/web3.js';
 import Navbar from './components/Navbar';
 import * as anchor from "@project-serum/anchor";
-import React, { FC, ReactNode, useMemo } from 'react';
-import { createCluster, initCluster, issueCluster, redeemCluster } from './components/funcs';
+import React, { FC, ReactNode, useEffect, useMemo, useState } from 'react';
+import { createCluster, initCluster, issueCluster, redeemCluster, getClusters, faucetTestTokens, createTokenAccounts } from './components/funcs';
 
 import * as buffer from "buffer";
 
@@ -65,13 +65,21 @@ const Context: FC<{ children: ReactNode }> = ({ children }) => {
 const Content: FC = () => {
     const wallet = useAnchorWallet();
 
+    const [clusters, setClusters] = useState(null);
+
     const k1 = new anchor.web3.PublicKey("7b1jGmedv6EdKagn9pgy25fpxQYSno7P7teZ2sL4VJa8");
     const k2 = new anchor.web3.PublicKey("9uzBMn5WbV3Z8hTUp41waD7YJDwfs6mRmMzdhjAq1sMT");
     const k3 = new anchor.web3.PublicKey("9nFLgom8xt39ho2jrSnd3wei9BKTsMUp893TffkTAE54");
 
     const cp = new anchor.web3.PublicKey("3bH9yB5hkMKzJtjfLwLb5EVhexrvBjQiTbPkz8K7XMzc");
 
-//    createCluster(k1,k2,k3);
+    const loadClusters = async(wallet : any) => {
+        await getClusters(wallet).then((i) => {
+            for(const clust of i){
+                console.log(clust.publicKey.toBase58());
+            }
+        });
+    }
 
     return (
         <div className="App">            
@@ -80,7 +88,10 @@ const Content: FC = () => {
                 <button onClick={() => createCluster(wallet, "ClusterOne", "CONE", k1, k2, k3)}>Create</button><br /><br />
                 <button onClick={() => initCluster(wallet, cp, k1, k2, k3)}>Init</button><br /><br />
                 <button onClick={() => issueCluster(wallet, cp, 1, k1, k2, k3)}>Issue</button><br /><br />
-                <button onClick={() => redeemCluster(wallet, cp, 1, k1, k2, k3)}>Redeem</button>
+                <button onClick={() => redeemCluster(wallet, cp, 1, k1, k2, k3)}>Redeem</button><br /><br />
+                <button onClick={() => createTokenAccounts(wallet,cp, k1, k2, k3)}>TokenAccounts</button><br /><br />
+                <button onClick={() => faucetTestTokens(wallet, k1, k2, k3)}>Faucet</button><br /><br />
+                <button onClick={() => loadClusters(wallet)}>GetClusters</button>
             </div>
         </div>
     );
