@@ -4,6 +4,7 @@
 /node_modules
 /.pnp
 .pnp.js
+elusiv-sdk-react-1.0.0.tgz
 
 # testing
 /coverage

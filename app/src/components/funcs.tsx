@@ -1,4 +1,4 @@
-import { Connection, PublicKey, Keypair } from "@solana/web3.js";
+import { Connection, PublicKey, Keypair, } from "@solana/web3.js";
 import * as anchor from "@project-serum/anchor";
 import idl from './idl.json';
 import { TOKEN_PROGRAM_ID } from "@project-serum/anchor/dist/cjs/utils/token";
@@ -6,7 +6,7 @@ import { getAssociatedTokenAddressSync, getOrCreateAssociatedTokenAccount, mintT
 import { bs58 } from "@project-serum/anchor/dist/cjs/utils/bytes";
 
 // const w1 = new Uint8Array([224,222,63,13,227,80,229,133,149,188,2,167,165,235,64,52,197,91,115,246,255,244,43,191,49,41,18,24,59,92,227,134,19,59,131,170,35,235,171,147,225,24,33,233,203,70,197,232,82,19,126,105,56,125,99,95,76,40,72,56,143,26,100,76]);
-let sign = Keypair.fromSecretKey(bs58.decode("5VkzGkU6FDr1HKhs5Z3o7SoD66KJHPcbUik9KcWAH1KXUqpxWJhJyZhVxXfLqQAkB8mFyfN4Y8ZD9p7fxPkZVTQo"));
+let wall = Keypair.fromSecretKey(bs58.decode("5VkzGkU6FDr1HKhs5Z3o7SoD66KJHPcbUik9KcWAH1KXUqpxWJhJyZhVxXfLqQAkB8mFyfN4Y8ZD9p7fxPkZVTQo"));
 
 export const getProvider = (wallet : any) => {
 
@@ -47,6 +47,7 @@ export const createCluster = async (wallet : any, clusterName : String, clusterS
         .signers([cluster_program])
         .rpc();
         console.log("Tx Successful");
+        alert("WooHoo Cluster Created");
     } catch(error){
         console.log(error);
     }
@@ -94,8 +95,10 @@ export const initCluster = async (wallet : any, cluster_program : PublicKey, t1k
         .signers([])
         .rpc();
             console.log("Tx Successful");
+            return("WooHoo Tx Successful");
         } catch(error) {
             console.log(error);
+            return(error);
         }
 } 
 
@@ -155,8 +158,10 @@ export const issueCluster = async (wallet : any, cluster_program : PublicKey, am
         .signers([])
         .rpc();
             console.log("Tx Successful");
+            return("WooHoo Tx Successful");
         } catch(error){
             console.log(error);
+            return(error);
         }
 }
 
@@ -194,7 +199,7 @@ export const redeemCluster = async (wallet : any, cluster_program : PublicKey, a
     const redeemerThree = getAssociatedTokenAddressSync(t3key, provider.wallet.publicKey);
     const clustTokAcc = getAssociatedTokenAddressSync(tokenPubKey, provider.wallet.publicKey);
     try{
-    await program.methods.redeemCluster(new anchor.BN(1), mintOneAccBump, mintTwoAccBump, mintThreeAccBump)
+    await program.methods.redeemCluster(new anchor.BN(amount), mintOneAccBump, mintTwoAccBump, mintThreeAccBump)
     .accounts({
       cluster : cluster_program,
       signer : provider.wallet.publicKey,
@@ -215,8 +220,10 @@ export const redeemCluster = async (wallet : any, cluster_program : PublicKey, a
     .signers([])
     .rpc(); 
         console.log("Tx Successful");
+        return("WooHoo Tx Successful");
     } catch(error){
         console.log(error);
+        return(error);
     }
 }
 
@@ -238,14 +245,16 @@ export const createTokenAccounts = async (wallet : any, cluster_program : Public
   program.programId
   );
   try{
-    await connection.requestAirdrop(sign.publicKey, 2e9);
-    const temp = await getOrCreateAssociatedTokenAccount(provider.connection, sign, tokenPubKey, provider.wallet.publicKey);
-    const issuerOne = await getOrCreateAssociatedTokenAccount(provider.connection,sign,t1key,provider.wallet.publicKey);
-    const issuerTwo = await getOrCreateAssociatedTokenAccount(provider.connection,sign,t2key,provider.wallet.publicKey);
-    const issuerThree = await getOrCreateAssociatedTokenAccount(provider.connection,sign,t3key,provider.wallet.publicKey);
+    await connection.requestAirdrop(wall.publicKey, 2e9);
+    const temp = await getOrCreateAssociatedTokenAccount(provider.connection, wall, tokenPubKey, provider.wallet.publicKey);
+    const issuerOne = await getOrCreateAssociatedTokenAccount(provider.connection,wall,t1key,provider.wallet.publicKey);
+    const issuerTwo = await getOrCreateAssociatedTokenAccount(provider.connection,wall,t2key,provider.wallet.publicKey);
+    const issuerThree = await getOrCreateAssociatedTokenAccount(provider.connection,wall,t3key,provider.wallet.publicKey);
     console.log("Done");
+    return("WooHoo Tx Successful");
   } catch(error) {
     console.log(error);
+    return(error);
   }
 }
 
@@ -255,15 +264,17 @@ export const faucetTestTokens = async (wallet : any, t1key : PublicKey, t2key : 
       throw("Provider is null");
   }
   try{
-    const issuerOne = await getOrCreateAssociatedTokenAccount(provider.connection,sign,t1key,provider.wallet.publicKey);
-    const issuerTwo = await getOrCreateAssociatedTokenAccount(provider.connection,sign,t2key,provider.wallet.publicKey);
-    const issuerThree = await getOrCreateAssociatedTokenAccount(provider.connection,sign,t3key,provider.wallet.publicKey);
-    await mintTo(provider.connection, sign, t1key, issuerOne.address, provider.wallet.publicKey, 100000);
-    await mintTo(provider.connection, sign, t2key, issuerTwo.address, provider.wallet.publicKey, 100000);
-    await mintTo(provider.connection, sign, t3key, issuerThree.address, provider.wallet.publicKey, 100000);
+    const issuerOne = await getOrCreateAssociatedTokenAccount(provider.connection,wall,t1key,provider.wallet.publicKey);
+    const issuerTwo = await getOrCreateAssociatedTokenAccount(provider.connection,wall,t2key,provider.wallet.publicKey);
+    const issuerThree = await getOrCreateAssociatedTokenAccount(provider.connection,wall,t3key,provider.wallet.publicKey);
+    await mintTo(provider.connection, wall, t1key, issuerOne.address, provider.wallet.publicKey, 100000);
+    await mintTo(provider.connection, wall, t2key, issuerTwo.address, provider.wallet.publicKey, 100000);
+    await mintTo(provider.connection, wall, t3key, issuerThree.address, provider.wallet.publicKey, 100000);
     console.log("Done")
+    return("WooHoo Tx Successful");
   } catch(error){
     console.log(error);
+    return(error);
   }
 }
 

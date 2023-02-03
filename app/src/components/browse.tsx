@@ -19,13 +19,7 @@ const Browse : FC = () => {
                 ListTitles.push({address: clustorList[i].publicKey.toBase58(), cname: clustorList[i]["account"].clusterName});            
             }
             setLoading(false);                  
-        })(); 
-        
-        return () => {
-            setLoading(true);
-            ListTitles = [];
-        }
-       
+        })();
     }, []); 
   return(
    <section className="m-auto p-auto h-max">

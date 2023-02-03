@@ -9,6 +9,7 @@ import * as anchor from "@project-serum/anchor";
 import Cluster from './components/clusters';
 import Home from './components/home';
 import Browse from './components/browse';
+import Create from './components/create';
 import React, { FC, ReactNode, useMemo } from 'react';
 import { createCluster, initCluster, issueCluster, redeemCluster, getClusters, faucetTestTokens, createTokenAccounts } from './components/funcs';
 
@@ -29,6 +30,7 @@ const App: FC = () => {
                     <Route path='/' element={<Home/>} />
                     <Route path='/content/' element={<Content />} />
                     <Route path='/browse/' element={<Browse />} />
+                    <Route path='/create/' element={<Create />} />
                     <Route path="/clusters/:address/" element={<Cluster />} />
                 </Routes>
         </Router>
@@ -81,7 +83,7 @@ const Content: FC = () => {
     const k2 = new anchor.web3.PublicKey("9uzBMn5WbV3Z8hTUp41waD7YJDwfs6mRmMzdhjAq1sMT");
     const k3 = new anchor.web3.PublicKey("9nFLgom8xt39ho2jrSnd3wei9BKTsMUp893TffkTAE54");
 
-    const cp = new anchor.web3.PublicKey("3bH9yB5hkMKzJtjfLwLb5EVhexrvBjQiTbPkz8K7XMzc");
+    const cp = new anchor.web3.PublicKey("ECVGYXg9bV8f1SXj9SL1RpjkFN4iSPGKFjh2z7Jy7VSh");
 
     const loadClusters = async(wallet : any) => {
         await getClusters(wallet).then((i) => {
