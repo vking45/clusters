@@ -267,9 +267,9 @@ export const faucetTestTokens = async (wallet : any, t1key : PublicKey, t2key : 
     const issuerOne = await getOrCreateAssociatedTokenAccount(provider.connection,wall,t1key,provider.wallet.publicKey);
     const issuerTwo = await getOrCreateAssociatedTokenAccount(provider.connection,wall,t2key,provider.wallet.publicKey);
     const issuerThree = await getOrCreateAssociatedTokenAccount(provider.connection,wall,t3key,provider.wallet.publicKey);
-    await mintTo(provider.connection, wall, t1key, issuerOne.address, provider.wallet.publicKey, 100000);
-    await mintTo(provider.connection, wall, t2key, issuerTwo.address, provider.wallet.publicKey, 100000);
-    await mintTo(provider.connection, wall, t3key, issuerThree.address, provider.wallet.publicKey, 100000);
+    await mintTo(provider.connection, wall, t1key, issuerOne.address, wall, 100000);
+    await mintTo(provider.connection, wall, t2key, issuerTwo.address, wall, 100000);
+    await mintTo(provider.connection, wall, t3key, issuerThree.address, wall, 100000);
     console.log("Done")
     return("WooHoo Tx Successful");
   } catch(error){
