@@ -68,10 +68,6 @@ const Home : FC = () => {
 </svg>
 
         </div>
-        <div className="flex-grow">
-          <h2 className="text-gray-900 text-lg title-font font-medium mb-3">Flash Loans</h2>
-          <p className="leading-relaxed text-base">Avail zero leverage, settled within a single operation loans and take profit of this unique DeFi feature.</p>
-        </div>
       </div>
     </div>
   </div>
