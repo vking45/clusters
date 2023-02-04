@@ -16,7 +16,7 @@ const Browse = () => {
             const clustorList = await getClusters(wallet);
             for (const i in clustorList){
                 console.log(clustorList[i].publicKey.toBase58());
-                if(clustorList[i].publicKey.toBase58() !== "ECVGYXg9bV8f1SXj9SL1RpjkFN4iSPGKFjh2z7Jy7VSh" && clustorList[i].publicKey.toBase58() !== "3bH9yB5hkMKzJtjfLwLb5EVhexrvBjQiTbPkz8K7XMzc" && clustorList[i].publicKey.toBase58() !== "5LBwoHeQC2vbbQoAYZWsn5S4ENvMJ5qTQbE3fnsX1ry9"){
+                if(clustorList[i].publicKey.toBase58() !== "ECVGYXg9bV8f1SXj9SL1RpjkFN4iSPGKFjh2z7Jy7VSh" && clustorList[i].publicKey.toBase58() !== "3bH9yB5hkMKzJtjfLwLb5EVhexrvBjQiTbPkz8K7XMzc" && clustorList[i].publicKey.toBase58() !== "5LBwoHeQC2vbbQoAYZWsn5S4ENvMJ5qTQbE3fnsX1ry9" && clustorList[i].publicKey.toBase58() !== "HBrXb2fLBq9zsX9qdZ3PM4NcTNfxrfHP8gfsWWbwqmkq"){
                     const found = ListTitles.find(el => el.address === clustorList[i].publicKey.toBase58());
                     console.log(found);
                     if(!found){
