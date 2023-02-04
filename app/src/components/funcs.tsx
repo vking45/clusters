@@ -112,17 +112,17 @@ export const issueCluster = async (wallet : any, cluster_program : PublicKey, am
     const program = new anchor.Program(temp, temp.metadata.address, provider);
 
     const [mintOneAcc, mintOneAccBump] = anchor.web3.PublicKey.findProgramAddressSync(
-        [t1key.toBuffer()],
+        [t1key.toBuffer(),cluster_program.toBuffer()],
         program.programId
       );
   
     const [mintTwoAcc, mintTwoAccBump] = anchor.web3.PublicKey.findProgramAddressSync(
-        [t2key.toBuffer()],
+        [t2key.toBuffer(),cluster_program.toBuffer()],
         program.programId
       );
   
     const [mintThreeAcc, mintThreeAccBump] = anchor.web3.PublicKey.findProgramAddressSync(
-        [t3key.toBuffer()],
+        [t3key.toBuffer(),cluster_program.toBuffer()],
         program.programId
       );
 
