@@ -22,7 +22,7 @@ export const getProvider = (wallet : any) => {
     return provider;
 }
 
-export const createCluster = async (wallet : any, clusterName : String, clusterSymbol : String, keyOne : PublicKey, keyTwo : PublicKey, keyThree : PublicKey) => {
+export const createCluster = async (wallet : any, clusterName : String, clusterSymbol : String, keyOne : PublicKey, keyTwo : PublicKey, keyThree : PublicKey, amt1 : anchor.BN, amt2 : anchor.BN, amt3 : anchor.BN) => {
     const provider = getProvider(wallet);
     if(!provider) {
         throw("Provider is null");
@@ -36,7 +36,7 @@ export const createCluster = async (wallet : any, clusterName : String, clusterS
         program.programId
     );
     try{
-        await program.methods.createCluster(clusterName, clusterSymbol, keyOne, keyTwo, keyThree)
+        await program.methods.createCluster(clusterName, clusterSymbol, keyOne, keyTwo, keyThree, amt1, amt2, amt3)
         .accounts({
           cluster : cluster_program.publicKey,
           signer : provider.wallet.publicKey,
@@ -50,6 +50,7 @@ export const createCluster = async (wallet : any, clusterName : String, clusterS
         alert("WooHoo Cluster Created");
     } catch(error){
         console.log(error);
+        alert(error);
     }
 }
 
@@ -62,17 +63,17 @@ export const initCluster = async (wallet : any, cluster_program : PublicKey, t1k
     const program = new anchor.Program(temp, temp.metadata.address, provider);
 
     const [mintOneAcc, mintOneAccBump] = anchor.web3.PublicKey.findProgramAddressSync(
-        [t1key.toBuffer()],
+        [t1key.toBuffer(), cluster_program.toBuffer()],
         program.programId
       );
   
       const [mintTwoAcc, mintTwoAccBump] = anchor.web3.PublicKey.findProgramAddressSync(
-        [t2key.toBuffer()],
+        [t2key.toBuffer(), cluster_program.toBuffer()],
         program.programId
       );
   
       const [mintThreeAcc, mintThreeAccBump] = anchor.web3.PublicKey.findProgramAddressSync(
-        [t3key.toBuffer()],
+        [t3key.toBuffer(), cluster_program.toBuffer()],
         program.programId
       );
 //    const clusterAccounts = await program.account.cluster.all();
@@ -174,17 +175,17 @@ export const redeemCluster = async (wallet : any, cluster_program : PublicKey, a
     const program = new anchor.Program(temp, temp.metadata.address, provider);
 
     const [mintOneAcc, mintOneAccBump] = anchor.web3.PublicKey.findProgramAddressSync(
-        [t1key.toBuffer()],
+        [t1key.toBuffer(), cluster_program.toBuffer()],
         program.programId
       );
   
     const [mintTwoAcc, mintTwoAccBump] = anchor.web3.PublicKey.findProgramAddressSync(
-        [t2key.toBuffer()],
+        [t2key.toBuffer(), cluster_program.toBuffer()],
         program.programId
       );
   
     const [mintThreeAcc, mintThreeAccBump] = anchor.web3.PublicKey.findProgramAddressSync(
-        [t3key.toBuffer()],
+        [t3key.toBuffer(), cluster_program.toBuffer()],
         program.programId
       );
 

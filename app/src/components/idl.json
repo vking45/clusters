@@ -51,6 +51,18 @@
         {
           "name": "t3",
           "type": "publicKey"
+        },
+        {
+          "name": "amt1",
+          "type": "u64"
+        },
+        {
+          "name": "amt2",
+          "type": "u64"
+        },
+        {
+          "name": "amt3",
+          "type": "u64"
         }
       ]
     },

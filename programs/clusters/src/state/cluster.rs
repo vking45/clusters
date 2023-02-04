@@ -44,15 +44,15 @@ impl Cluster{
         Ok(())
     }
 
-    pub fn issue_cluster(&mut self) -> Result<()>{
+    pub fn issue_cluster(&mut self, amt : u64) -> Result<()>{
         require!(self.inited, Errors::InitError);
-        self.cluster_supply += 1;
+        self.cluster_supply += amt;
         Ok(())
     }
 
-    pub fn redeem_cluster(&mut self) -> Result<()>{
+    pub fn redeem_cluster(&mut self, amt : u64) -> Result<()>{
         require!(self.inited, Errors::InitError);
-        self.cluster_supply -= 1;
+        self.cluster_supply -= amt;
         Ok(())
     }
 }

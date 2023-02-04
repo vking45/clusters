@@ -11,8 +11,8 @@ declare_id!("CLR2boxd8sn2XnPM5vfEsdhDiUcvCaCuBg3zSzffYMe4");
 pub mod clusters {
     use super::*;
 
-    pub fn create_cluster(ctx: Context<Create>, name : String, symbol : String, t1 : Pubkey, t2 : Pubkey, t3 : Pubkey) -> Result<()> {
-        instructions::create::create_cluster(ctx, name, symbol, t1, t2, t3)?;
+    pub fn create_cluster(ctx: Context<Create>, name : String, symbol : String, t1 : Pubkey, t2 : Pubkey, t3 : Pubkey, amt1 : u64, amt2 : u64, amt3 : u64) -> Result<()> {
+        instructions::create::create_cluster(ctx, name, symbol, t1, t2, t3, amt1, amt2, amt3)?;
         Ok(())
     }
 

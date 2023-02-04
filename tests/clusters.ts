@@ -30,7 +30,7 @@ describe("clusters", () => {
 
   console.log("-----------------Creating a Cluster-----------------");
   console.log();
-    const tx = await program.methods.createCluster("Test", "TST", t1key, t2key, t3key)
+    const tx = await program.methods.createCluster("Test", "TST", t1key, t2key, t3key, new anchor.BN(1), new anchor.BN(1), new anchor.BN(1))
     .accounts({
       cluster : cluster_program.publicKey,
       signer : sign.publicKey,
@@ -51,17 +51,23 @@ describe("clusters", () => {
 
 
     const [mintOneAcc, mintOneAccBump] = anchor.web3.PublicKey.findProgramAddressSync(
-      [t1key.toBuffer()],
+      [t1key.toBuffer(),
+        cluster_program.publicKey.toBuffer()
+      ],
       program.programId
     );
 
     const [mintTwoAcc, mintTwoAccBump] = anchor.web3.PublicKey.findProgramAddressSync(
-      [t2key.toBuffer()],
+      [t2key.toBuffer(),
+        cluster_program.publicKey.toBuffer()
+      ],
       program.programId
     );
 
     const [mintThreeAcc, mintThreeAccBump] = anchor.web3.PublicKey.findProgramAddressSync(
-      [t3key.toBuffer()],
+      [t3key.toBuffer(),
+        cluster_program.publicKey.toBuffer()
+      ],
       program.programId
     );
 
@@ -94,9 +100,9 @@ try{
     const temp = await getOrCreateAssociatedTokenAccount(provider.connection, sign, tokenPubKey, sign.publicKey);
     console.log("-----------------Issuing a Cluster Token-----------------");
     console.log();
-    await mintTo(provider.connection, sign, t1key, issuerOne.address, sign, 100000);
-    await mintTo(provider.connection, sign, t2key, issuerTwo.address, sign, 100000);
-    await mintTo(provider.connection, sign, t3key, issuerThree.address, sign, 100000);
+    await mintTo(provider.connection, sign, t1key, issuerOne.address, sign, 2);
+    await mintTo(provider.connection, sign, t2key, issuerTwo.address, sign, 2);
+    await mintTo(provider.connection, sign, t3key, issuerThree.address, sign, 2);
 try{    
     const tx2 = await program.methods.issueCluster(new anchor.BN(2), tokenBump)
     .accounts({

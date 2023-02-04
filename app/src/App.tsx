@@ -83,7 +83,7 @@ const Content: FC = () => {
     const k2 = new anchor.web3.PublicKey("9uzBMn5WbV3Z8hTUp41waD7YJDwfs6mRmMzdhjAq1sMT");
     const k3 = new anchor.web3.PublicKey("9nFLgom8xt39ho2jrSnd3wei9BKTsMUp893TffkTAE54");
 
-    const cp = new anchor.web3.PublicKey("ECVGYXg9bV8f1SXj9SL1RpjkFN4iSPGKFjh2z7Jy7VSh");
+    const cp = new anchor.web3.PublicKey("HBrXb2fLBq9zsX9qdZ3PM4NcTNfxrfHP8gfsWWbwqmkq");
 
     const loadClusters = async(wallet : any) => {
         await getClusters(wallet).then((i) => {
@@ -96,7 +96,7 @@ const Content: FC = () => {
     return (
         <div className="App">
             <div>
-                <button onClick={() => createCluster(wallet, "ClusterOne", "CONE", k1, k2, k3)}>Create</button><br /><br />
+                <button onClick={() => createCluster(wallet, "ClusterOne", "CONE", k1, k2, k3, new anchor.BN(1), new anchor.BN(2), new anchor.BN(3))}>Create</button><br /><br />
                 <button onClick={() => initCluster(wallet, cp, k1, k2, k3)}>Init</button><br /><br />
                 <button onClick={() => issueCluster(wallet, cp, 1, k1, k2, k3)}>Issue</button><br /><br />
                 <button onClick={() => redeemCluster(wallet, cp, 1, k1, k2, k3)}>Redeem</button><br /><br />

@@ -74,7 +74,7 @@ pub fn issue_cluster(ctx : Context<Issue>, amt : u64, bump : u8) -> Result<()>{
         amt
     )?;  
 
-    cluster.issue_cluster()?;
+    cluster.issue_cluster(amt)?;
     Ok(())
 }
 
@@ -100,6 +100,7 @@ pub fn redeem_cluster(ctx : Context<Redeem>, amt : u64, bump_one : u8, bump_two 
             },
             &[&[
                 &mint_one.to_account_info().key.clone().to_bytes(),
+                &cluster.to_account_info().key.clone().to_bytes(),
                 &[bump_one],
             ]]
         ),
@@ -117,6 +118,7 @@ pub fn redeem_cluster(ctx : Context<Redeem>, amt : u64, bump_one : u8, bump_two 
             },
             &[&[
                 &mint_two.to_account_info().key.clone().to_bytes(),
+                &cluster.to_account_info().key.clone().to_bytes(),
                 &[bump_two],
             ]]
         ),
@@ -133,6 +135,7 @@ pub fn redeem_cluster(ctx : Context<Redeem>, amt : u64, bump_one : u8, bump_two 
             },
             &[&[
                 &mint_three.to_account_info().key.clone().to_bytes(),
+                &cluster.to_account_info().key.clone().to_bytes(),
                 &[bump_three],
             ]]
         ),
@@ -167,7 +170,7 @@ pub fn redeem_cluster(ctx : Context<Redeem>, amt : u64, bump_one : u8, bump_two 
         amt
     )?;  
 */
-    cluster.redeem_cluster()?;
+    cluster.redeem_cluster(amt)?;
     Ok(())
 }
 
@@ -203,7 +206,10 @@ pub struct InitCluster<'info>{
         payer = signer,
         token::mint = mint_one,
         token::authority = mint_one_account,
-        seeds = [&mint_one.to_account_info().key.clone().to_bytes()],
+        seeds = [
+            &mint_one.to_account_info().key.clone().to_bytes(),
+            &cluster.to_account_info().key.clone().to_bytes()
+        ],
         bump,
     )]
     pub mint_one_account : Box<Account<'info, TokenAccount>>, 
@@ -213,7 +219,9 @@ pub struct InitCluster<'info>{
         payer = signer,
         token::mint = mint_two,
         token::authority = mint_two_account,
-        seeds = [&mint_two.to_account_info().key.clone().to_bytes()],
+        seeds = [&mint_two.to_account_info().key.clone().to_bytes(),
+                &cluster.to_account_info().key.clone().to_bytes()
+        ],
         bump,
     )]
     pub mint_two_account : Box<Account<'info, TokenAccount>>, 
@@ -223,7 +231,9 @@ pub struct InitCluster<'info>{
         payer = signer,
         token::mint = mint_three,
         token::authority = mint_three_account,
-        seeds = [&mint_three.to_account_info().key.clone().to_bytes()],
+        seeds = [&mint_three.to_account_info().key.clone().to_bytes(),
+                &cluster.to_account_info().key.clone().to_bytes()
+        ],
         bump,
     )]
     pub mint_three_account : Box<Account<'info, TokenAccount>>, 
@@ -379,7 +389,7 @@ pub struct Redeem<'info>{
         mut,
         token::mint = mint_one,
         token::authority = cluster_one,
-        seeds = [&mint_one.to_account_info().key.clone().to_bytes()],
+        seeds = [&mint_one.to_account_info().key.clone().to_bytes(), &cluster.to_account_info().key.clone().to_bytes()],
         bump,
     )]
     pub cluster_one : Box<Account<'info, TokenAccount>>,
@@ -388,7 +398,7 @@ pub struct Redeem<'info>{
         mut,
         token::mint = mint_two,
         token::authority = cluster_two,
-        seeds = [&mint_two.to_account_info().key.clone().to_bytes()],
+        seeds = [&mint_two.to_account_info().key.clone().to_bytes(), &cluster.to_account_info().key.clone().to_bytes()],
         bump,
     )]
     pub cluster_two : Box<Account<'info, TokenAccount>>,
@@ -397,7 +407,7 @@ pub struct Redeem<'info>{
         mut,
         token::mint = mint_three,
         token::authority = cluster_three,
-        seeds = [&mint_three.to_account_info().key.clone().to_bytes()],
+        seeds = [&mint_three.to_account_info().key.clone().to_bytes(), &cluster.to_account_info().key.clone().to_bytes()],
         bump,
     )]
     pub cluster_three : Box<Account<'info, TokenAccount>>,
