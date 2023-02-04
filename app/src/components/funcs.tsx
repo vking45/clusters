@@ -246,7 +246,6 @@ export const createTokenAccounts = async (wallet : any, cluster_program : Public
   program.programId
   );
   try{
-    await connection.requestAirdrop(wall.publicKey, 2e9);
     const temp = await getOrCreateAssociatedTokenAccount(provider.connection, wall, tokenPubKey, provider.wallet.publicKey);
     const issuerOne = await getOrCreateAssociatedTokenAccount(provider.connection,wall,t1key,provider.wallet.publicKey);
     const issuerTwo = await getOrCreateAssociatedTokenAccount(provider.connection,wall,t2key,provider.wallet.publicKey);
