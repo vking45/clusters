@@ -1,6 +1,7 @@
 import { Connection, PublicKey, Keypair, } from "@solana/web3.js";
 import * as anchor from "@project-serum/anchor";
 import idl from './idl.json';
+import flash from './flash_loan.json';
 import { TOKEN_PROGRAM_ID } from "@project-serum/anchor/dist/cjs/utils/token";
 import { getAssociatedTokenAddressSync, getOrCreateAssociatedTokenAccount, mintTo } from "@solana/spl-token";
 import { bs58 } from "@project-serum/anchor/dist/cjs/utils/bytes";
@@ -290,4 +291,76 @@ const program = new anchor.Program(temp, temp.metadata.address, provider);
 //    console.log(i.publicKey.toBase58());
 //+  }
   return clusterAccounts;
+}
+
+export const initFlash = async (wallet : any, tokKey : PublicKey) => {
+  const provider = getProvider(wallet);
+  if(!provider) {
+    throw("Provider is null");
+  }
+  const temp = JSON.parse(JSON.stringify(flash));
+  const program = new anchor.Program(temp, temp.metadata.address, provider);
+  const flash_program = anchor.web3.Keypair.generate();
+  console.log(flash_program.publicKey.toString());
+
+  try{
+    await program.methods.init()
+    .accounts({
+      flash : flash_program.publicKey,
+      signer : wall.publicKey,
+      mint : tokKey,
+      tokenProgram : TOKEN_PROGRAM_ID,
+      systemProgram : anchor.web3.SystemProgram.programId,        
+    })
+    .signers([wall, flash_program])
+    .rpc();
+    alert("Flash Created");
+  } catch(error){
+    alert(error);
+  }
+
+}
+
+export const executeFlash = async (wallet : any, cluster_program : PublicKey, flash_program : PublicKey, tokKey : PublicKey) => {
+  const provider = getProvider(wallet);
+  if(!provider) {
+    throw("Provider is null");
+  }
+  const temp = JSON.parse(JSON.stringify(idl));
+  const program = new anchor.Program(temp, temp.metadata.address, provider);
+
+  const [mintAcc, mintAccBump] = anchor.web3.PublicKey.findProgramAddressSync(
+    [tokKey.toBuffer(),
+    cluster_program.toBuffer()
+    ],
+    program.programId
+  );
+
+  let [flashLoanTokenAccount, flashBump] =
+  anchor.web3.PublicKey.findProgramAddressSync(
+  [tokKey.toBuffer(), flash_program.toBuffer()],
+    program.programId
+);
+
+  try{
+    await program.methods.executeFlash(new anchor.BN(1), mintAccBump, flashBump)
+    .accounts({
+      flash : flash_program,
+      signer : provider.wallet.publicKey,
+      flashProgram : new anchor.web3.PublicKey("HyCwgwM8oEscef5NpE7VnMmkTDxu6wsUSog43CKPfmq8"),
+      cluster : cluster_program,
+      mint : tokKey,
+      clusterTokenAccount : mintAcc,
+      flashTokenAccount : flashLoanTokenAccount,
+      tokenProgram : TOKEN_PROGRAM_ID,
+      systemProgram : anchor.web3.SystemProgram.programId,         
+    })
+    .signers([])
+    .rpc()
+    alert("Flash Executed");
+  } catch(error){
+    alert(error);
+    console.log(error);
+  }
+
 }

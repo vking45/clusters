@@ -1,5 +1,8 @@
 use anchor_lang::prelude::*;
 use crate::state::cluster::*;
+use flash_loan::cpi::accounts::OnFlash;
+use flash_loan::program::FlashLoan;
+use flash_loan::{self,Flash};
 use anchor_spl::{
     token::{TokenAccount, Token, Mint, Transfer, transfer, mint_to, MintTo, burn, Burn},
 };
@@ -172,6 +175,92 @@ pub fn redeem_cluster(ctx : Context<Redeem>, amt : u64, bump_one : u8, bump_two 
 */
     cluster.redeem_cluster(amt)?;
     Ok(())
+}
+
+pub fn execute_flash(ctx : Context<Execute>, amt : u64, bump_one : u8, bump_two : u8) -> Result<()>{
+
+    transfer(
+        CpiContext::new_with_signer(
+            ctx.accounts.token_program.to_account_info(),
+            Transfer{
+                from : ctx.accounts.cluster_token_account.to_account_info(),
+                to : ctx.accounts.flash_token_account.to_account_info(),
+                authority : ctx.accounts.cluster_token_account.to_account_info(),
+            },
+            &[&[
+                &ctx.accounts.mint.to_account_info().key.clone().to_bytes(),
+                &ctx.accounts.cluster.to_account_info().key.clone().to_bytes(),
+                &[bump_one],
+            ]]
+        ),
+        amt
+    )?;
+
+    let cpi_program = ctx.accounts.flash_program.to_account_info();
+    let cpi_accounts = OnFlash {
+        flash_account : ctx.accounts.flash.to_account_info(),
+    };
+    let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts);
+    flash_loan::cpi::on_flash(cpi_ctx)?;
+
+    transfer(
+        CpiContext::new_with_signer(
+            ctx.accounts.token_program.to_account_info(),
+            Transfer{
+                from : ctx.accounts.flash_token_account.to_account_info(),
+                to : ctx.accounts.cluster_token_account.to_account_info(),
+                authority : ctx.accounts.flash_token_account.to_account_info(),
+            },
+            &[&[
+                &ctx.accounts.mint.to_account_info().key.clone().to_bytes(),
+                &ctx.accounts.flash.to_account_info().key.clone().to_bytes(),
+                &[bump_two],
+            ]]
+        ),
+        amt
+    )?;
+
+    Ok(())
+}
+
+#[derive(Accounts)]
+pub struct Execute<'info>{
+
+    #[account(mut)]
+    pub cluster : Account<'info, Cluster>,
+
+    #[account(mut)]
+    pub mint : Account<'info, Mint>,
+
+    #[account(mut)]
+    pub flash : Account<'info, Flash>,
+    
+    #[account(mut)]
+    pub signer : Signer<'info>,
+
+    #[account(
+        mut,
+        token::mint = mint,
+        token::authority = cluster_token_account,
+        seeds = [&mint.to_account_info().key.clone().to_bytes(), &cluster.to_account_info().key.clone().to_bytes()],
+        bump,
+    )]
+    pub cluster_token_account : Box<Account<'info, TokenAccount>>,
+
+    #[account(
+        init_if_needed,
+        payer = signer,
+        token::mint = mint,
+        token::authority = flash_token_account,
+        seeds = [&mint.to_account_info().key.clone().to_bytes(), &flash.to_account_info().key.clone().to_bytes()], 
+        bump)]
+    pub flash_token_account : Box<Account<'info, TokenAccount>>,
+
+    pub flash_program : Program<'info, FlashLoan>,
+
+    pub token_program : Program<'info, Token>,
+
+    pub system_program : Program<'info, System>,
 }
 
 #[derive(Accounts)]

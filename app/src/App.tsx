@@ -11,7 +11,7 @@ import Home from './components/home';
 import Browse from './components/browse';
 import Create from './components/create';
 import React, { FC, ReactNode, useMemo } from 'react';
-import { createCluster, initCluster, issueCluster, redeemCluster, getClusters, faucetTestTokens, createTokenAccounts } from './components/funcs';
+import { createCluster, initCluster, issueCluster, redeemCluster, getClusters, faucetTestTokens, createTokenAccounts, initFlash } from './components/funcs';
 
 import * as buffer from "buffer";
 
@@ -79,7 +79,7 @@ const Context: FC<{ children: ReactNode }> = ({ children }) => {
 const Content: FC = () => {
     const wallet = useAnchorWallet();
 
-    const k1 = new anchor.web3.PublicKey("7b1jGmedv6EdKagn9pgy25fpxQYSno7P7teZ2sL4VJa8");
+    const k1 = new anchor.web3.PublicKey("9SWu9ikoAcwL7oLZmRAhbbz957vqKvWkxdyffMNJYcK4");
     const k2 = new anchor.web3.PublicKey("9uzBMn5WbV3Z8hTUp41waD7YJDwfs6mRmMzdhjAq1sMT");
     const k3 = new anchor.web3.PublicKey("9nFLgom8xt39ho2jrSnd3wei9BKTsMUp893TffkTAE54");
 
@@ -98,6 +98,7 @@ const Content: FC = () => {
             <div>
                 <button onClick={() => createCluster(wallet, "ClusterOne", "CONE", k1, k2, k3, new anchor.BN(1), new anchor.BN(2), new anchor.BN(3))}>Create</button><br /><br />
                 <button onClick={() => initCluster(wallet, cp, k1, k2, k3)}>Init</button><br /><br />
+                <button onClick={() => initFlash(wallet, k1)}>initFlash</button><br /><br />
                 <button onClick={() => issueCluster(wallet, cp, 1, k1, k2, k3)}>Issue</button><br /><br />
                 <button onClick={() => redeemCluster(wallet, cp, 1, k1, k2, k3)}>Redeem</button><br /><br />
                 <button onClick={() => createTokenAccounts(wallet,cp, k1, k2, k3)}>TokenAccounts</button><br /><br />

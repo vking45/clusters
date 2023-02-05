@@ -37,4 +37,9 @@ pub mod clusters {
         Ok(())
     }
 
+    pub fn execute_flash(ctx : Context<Execute>, amt : u64, bump_one : u8, bump_two : u8) -> Result<()> {
+        instructions::interact::execute_flash(ctx, amt, bump_one, bump_two)?;
+        Ok(())
+    }
+
 }

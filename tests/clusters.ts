@@ -1,6 +1,7 @@
 import * as anchor from "@project-serum/anchor";
 import { Program } from "@project-serum/anchor";
 import { Clusters } from "../target/types/clusters";
+import { FlashLoan } from "../target/types/flash_loan";
 import * as web3 from "@solana/web3.js";
 import { TOKEN_PROGRAM_ID } from "@project-serum/anchor/dist/cjs/utils/token";
 import { mintTo, createMint, getOrCreateAssociatedTokenAccount } from "@solana/spl-token";
@@ -12,10 +13,12 @@ describe("clusters", () => {
   anchor.setProvider(anchor.AnchorProvider.env());
 
   const program = anchor.workspace.Clusters as Program<Clusters>;
+  const flash_loan = anchor.workspace.FlashLoan as Program<FlashLoan>;
 
   const w1 = new Uint8Array([224,222,63,13,227,80,229,133,149,188,2,167,165,235,64,52,197,91,115,246,255,244,43,191,49,41,18,24,59,92,227,134,19,59,131,170,35,235,171,147,225,24,33,233,203,70,197,232,82,19,126,105,56,125,99,95,76,40,72,56,143,26,100,76]);
   let sign = web3.Keypair.fromSecretKey(w1);
   const cluster_program = anchor.web3.Keypair.generate();
+  const flash_program = anchor.web3.Keypair.generate();
 
   let [tokenPubKey, tokenBump] =
     anchor.web3.PublicKey.findProgramAddressSync(
@@ -30,7 +33,7 @@ describe("clusters", () => {
 
   console.log("-----------------Creating a Cluster-----------------");
   console.log();
-    const tx = await program.methods.createCluster("Test", "TST", t1key, t2key, t3key, new anchor.BN(1), new anchor.BN(1), new anchor.BN(1))
+    const tx = await program.methods.createCluster("Test", "TST", t1key, t2key, t3key, new anchor.BN(3), new anchor.BN(1), new anchor.BN(2))
     .accounts({
       cluster : cluster_program.publicKey,
       signer : sign.publicKey,
@@ -50,9 +53,15 @@ describe("clusters", () => {
     const testOne = await getOrCreateAssociatedTokenAccount(provider.connection,sign,t1key,cluster_program.publicKey);
 
 
+    let [flashLoanTokenAccount, flashBump] =
+    anchor.web3.PublicKey.findProgramAddressSync(
+    [t1key.toBuffer(), flash_program.publicKey.toBuffer()],
+      program.programId
+  );
+
     const [mintOneAcc, mintOneAccBump] = anchor.web3.PublicKey.findProgramAddressSync(
       [t1key.toBuffer(),
-        cluster_program.publicKey.toBuffer()
+      cluster_program.publicKey.toBuffer()
       ],
       program.programId
     );
@@ -100,9 +109,9 @@ try{
     const temp = await getOrCreateAssociatedTokenAccount(provider.connection, sign, tokenPubKey, sign.publicKey);
     console.log("-----------------Issuing a Cluster Token-----------------");
     console.log();
-    await mintTo(provider.connection, sign, t1key, issuerOne.address, sign, 2);
-    await mintTo(provider.connection, sign, t2key, issuerTwo.address, sign, 2);
-    await mintTo(provider.connection, sign, t3key, issuerThree.address, sign, 2);
+    await mintTo(provider.connection, sign, t1key, issuerOne.address, sign, 20000);
+    await mintTo(provider.connection, sign, t2key, issuerTwo.address, sign, 2000);
+    await mintTo(provider.connection, sign, t3key, issuerThree.address, sign, 2000);
 try{    
     const tx2 = await program.methods.issueCluster(new anchor.BN(2), tokenBump)
     .accounts({
@@ -151,12 +160,48 @@ try{
         tokenProgram : TOKEN_PROGRAM_ID,
         systemProgram : anchor.web3.SystemProgram.programId,
       })
-      .signers([sign])
+      .signers([])
       .rpc();  //.rpc();
       console.log("Cluster Redeemed!", tx3);
       console.log();}
       catch(error){
         console.log(error);
       }
+
+      try{
+      const tx4 = await flash_loan.methods.init()
+      .accounts({
+        flash : flash_program.publicKey,
+        signer : sign.publicKey,
+        mint : t1key,
+        tokenProgram : TOKEN_PROGRAM_ID,
+        systemProgram : anchor.web3.SystemProgram.programId,        
+      })
+      .signers([sign, flash_program])
+      .rpc();
+      console.log("Flash Created", tx4);
+    } catch(error){
+      console.log(error);
+    }
+
+    try{
+      const tx5 = await program.methods.executeFlash(new anchor.BN(1), mintOneAccBump, flashBump)
+      .accounts({
+        flash : flash_program.publicKey,
+        signer : sign.publicKey,
+        flashProgram : flash_loan.programId,
+        cluster : cluster_program.publicKey,
+        mint : t1key,
+        clusterTokenAccount : mintOneAcc,
+        flashTokenAccount : flashLoanTokenAccount,
+        tokenProgram : TOKEN_PROGRAM_ID,
+        systemProgram : anchor.web3.SystemProgram.programId,         
+      })
+      .signers([])
+      .rpc()
+      console.log("Flash Executed", tx5);
+    } catch(error){
+      console.log(error);
+    }
   });
 });
