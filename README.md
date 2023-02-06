@@ -7,7 +7,7 @@
 
 ## Clusters Project built for Solana
 
-Clusters is a decentralized finance (DeFi) tool that allows users to create, rebalance, and manage portfolios of Tezos-based tokens — like an exchange-traded fund (ETF), but for Solana tokens — which are themselves tradeable on crypto exchanges. Users can create their own indexes, or buy into someone else’s and share in the success of their portfolio strategies.
+Clusters is a decentralized finance (DeFi) tool that allows users to create, rebalance, and manage portfolios of Solana-based tokens — like an exchange-traded fund (ETF), but for Solana tokens — which are themselves tradeable on crypto exchanges. Users can create their own indexes, or buy into someone else’s and share in the success of their portfolio strategies.
 
 Assets created on Clusters similarly to exchange-traded funds (ETFs) — derivative assets that provide exposure to baskets of securities, and which trade like a stock. Users can create baskets of crypto tokens, bundle them up into a batch, and then buy, sell, or trade those  batches on exchanges.  
 
